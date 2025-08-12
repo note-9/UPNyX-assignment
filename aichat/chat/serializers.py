@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from .models import User
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.hashers import check_password
+from .models import User, Chat
+from django.contrib.auth.hashers import make_password, check_password
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -35,3 +34,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validated_data['password'] = make_password(validated_data['password'])
         validated_data['tokens'] = 4000
         return super().create(validated_data)
+
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = ['message']
