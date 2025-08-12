@@ -23,7 +23,8 @@ class UserLoginView(APIView):
             user = serializer.validated_data['user']
 
             # Create or retrieve token
-            token, created = Token.objects.get_or_create(user=user)
+            token = AuthToken.generate_token()
+            AuthToken.objects.create(user=user, key=token)
 
             return Response(
                 {
