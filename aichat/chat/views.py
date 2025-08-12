@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, ChatSerializer
 from .models import User, AuthToken, Chat 
@@ -29,7 +30,7 @@ class UserLoginView(APIView):
             return Response(
                 {
                     "message": "Login successful",
-                    "token": token.key,
+                    "token": token,
                     "tokens_left": user.tokens
                 },
                 status=status.HTTP_200_OK
@@ -37,9 +38,17 @@ class UserLoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def authenticate_request(request):
-    token_key = request.headers.get('Authorization') or request.data.get('token')
+    auth_header = request.headers.get('Authorization')
+    token_key = None
+    
+    if auth_header and auth_header.startswith('Token '):
+        token_key = auth_header.split(' ')[1]  # Get only the token string
+    elif request.data.get('token'):  # fallback to body
+        token_key = request.data.get('token')
+    
     if not token_key:
         return None
+
     return AuthToken.objects.filter(key=token_key).first()
 
 class ChatAPIView(APIView):
